@@ -573,6 +573,36 @@ lang="es">
 </head>
 <body>
 
+<!-- ══════════════════════════════════
+     PASSWORD GATE — Propuesta confidencial Grupo Bebidas Colombia
+     Vence: 2026-10-22 (30 días desde el envío)
+══════════════════════════════════════ -->
+<div id="password-gate" style="position:fixed;inset:0;z-index:9999;background:#0A0A0C;display:flex;align-items:center;justify-content:center;padding:24px;font-family:'Urbanist',-apple-system,sans-serif;">
+  <div style="width:min(420px,100%);text-align:center;">
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:36px;flex-wrap:wrap;">
+      <span style="font-size:20px;font-weight:800;letter-spacing:0.04em;color:#C9A84C;">Jeeves</span>
+    </div>
+    <div id="gate-locked-view">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#C9A84C;background:rgba(201,168,76,0.10);border:1px solid rgba(201,168,76,0.22);padding:6px 18px;border-radius:999px;margin-bottom:24px;display:inline-block;">Propuesta confidencial</div>
+      <h1 style="font-size:26px;font-weight:900;color:#F0EDE6;margin-bottom:12px;letter-spacing:-0.01em;">Acceso protegido</h1>
+      <p style="font-size:14px;color:#9A9690;line-height:1.6;margin-bottom:28px;">Esta propuesta es exclusiva para Grupo Bebidas Colombia. Ingresa la contraseña que te compartió tu contacto en Jeeves para continuar.</p>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <input id="pw-input" type="password" placeholder="Contraseña" autocomplete="off" style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.22);border-radius:10px;padding:14px 16px;font-family:'Urbanist',sans-serif;font-size:15px;font-weight:600;color:#F0EDE6;outline:none;width:100%;text-align:center;">
+        <button id="pw-submit" style="display:inline-flex;align-items:center;justify-content:center;gap:10px;background:#C9A84C;color:#0A0A0C;font-size:14px;font-weight:800;letter-spacing:0.04em;padding:14px 24px;border-radius:999px;border:none;cursor:pointer;width:100%;">Ingresar</button>
+      </div>
+      <div id="pw-error" style="display:none;margin-top:14px;font-size:12px;font-weight:600;color:#E05555;">Contraseña incorrecta. Intenta de nuevo.</div>
+    </div>
+    <div id="gate-expired-view" style="display:none;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#E05555;background:rgba(224,85,85,0.10);border:1px solid rgba(224,85,85,0.25);padding:6px 18px;border-radius:999px;margin-bottom:24px;display:inline-block;">Propuesta vencida</div>
+      <h1 style="font-size:26px;font-weight:900;color:#F0EDE6;margin-bottom:12px;letter-spacing:-0.01em;">Esta propuesta ha expirado</h1>
+      <p style="font-size:14px;color:#9A9690;line-height:1.6;">El periodo de vigencia de esta propuesta terminó. Contacta a tu ejecutivo de Jeeves para solicitar una versión actualizada.</p>
+    </div>
+  </div>
+</div>
+
+<div id="site-content" style="display:none;">
+
+
 <!-- ══ NAV ══ -->
 <nav>
   <div class="nav-logo">
@@ -1461,22 +1491,6 @@ function recalc() {
     document.getElementById('roi_fill').style.width = '0%';
   }
 
-  // Breakdown table (compatible layer)
-  setText('bt_users_mes', fusd(platMesUSD));
-  setText('bt_users_ano', fusd(platAnoUSD));
-  setText('bt_users_usd', fusd(platAnoUSD));
-  setText('bt_fee_mes', fusd(feeAnoUSD / 12));
-  setText('bt_fee_ano', fusd(feeAnoUSD));
-  setText('bt_fee_usd', fusd(feeAnoUSD));
-  setText('bt_plat_mes', fusd(platMesUSD));
-  setText('bt_plat_ano', fusd(platAnoUSD));
-  setText('bt_plat_usd', fusd(platAnoUSD));
-  setText('bt_cb_mes', fusd(cbUSD / 6));
-  setText('bt_cb_ano', '−' + fusd(cbUSD));
-  setText('bt_cb_usd', '−' + fusd(cbUSD));
-  setText('bt_neto_mes', fusd(netoAnoUSD / 12));
-  setText('bt_neto_ano', fusd(netoAnoUSD));
-  setText('bt_neto_usd', fusd(netoAnoUSD));
 } // end recalc
 
 function toggleCajero() {
@@ -1572,6 +1586,51 @@ window.addEventListener('load', function() {
   var card = document.querySelector('.exec-card');
   if (card) { card.classList.add('selected'); }
 });
+</script>
+</div><!-- /#site-content -->
+
+<script>
+(function(){
+  var PASSWORD = "JeevesQ32026";
+  var EXPIRY = new Date("2026-10-22T23:59:59-05:00").getTime();
+  var gate = document.getElementById('password-gate');
+  var content = document.getElementById('site-content');
+  var lockedView = document.getElementById('gate-locked-view');
+  var expiredView = document.getElementById('gate-expired-view');
+
+  function unlock() {
+    gate.style.display = 'none';
+    content.style.display = 'block';
+  }
+
+  if (Date.now() > EXPIRY) {
+    lockedView.style.display = 'none';
+    expiredView.style.display = 'block';
+    return;
+  }
+
+  try {
+    if (sessionStorage.getItem('bebidas_proposal_auth') === 'ok') {
+      unlock();
+      return;
+    }
+  } catch (e) {}
+
+  function checkPassword() {
+    var input = document.getElementById('pw-input');
+    if (input.value === PASSWORD) {
+      try { sessionStorage.setItem('bebidas_proposal_auth', 'ok'); } catch (e) {}
+      unlock();
+    } else {
+      document.getElementById('pw-error').style.display = 'block';
+    }
+  }
+
+  document.getElementById('pw-submit').addEventListener('click', checkPassword);
+  document.getElementById('pw-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') checkPassword();
+  });
+})();
 </script>
 </body>
 </html>
